@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.middlewares.rate_limit import RateLimitMiddleware
+from app.api.v1.router import api_router
 
 # Crear la aplicación FastAPI
 app = FastAPI(
@@ -24,6 +25,9 @@ app.add_middleware(
     RateLimitMiddleware,
     requests_per_minute=settings.RATE_LIMIT_PER_MINUTE
 )
+
+# Incluir routers de API v1
+app.include_router(api_router, prefix=settings.API_V1_STR)
 
 
 @app.get("/")
