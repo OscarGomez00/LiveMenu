@@ -1,0 +1,1 @@
+# Endpoint - Autenticación (registro, login)

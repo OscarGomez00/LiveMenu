@@ -1,0 +1,1 @@
+# Endpoint - CRUD de Categorías
