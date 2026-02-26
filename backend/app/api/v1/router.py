@@ -25,6 +25,6 @@ api_router.include_router(admin_router)
 # api_router.include_router(categories.router)     # Category CRUD
 # api_router.include_router(menu.router)           # Public menu
 # api_router.include_router(qr.router)             # QR generation
-# api_router.include_router(upload.router)         # Image upload
+api_router.include_router(upload.router)           # Image upload
 # api_router.include_router(analytics.router)      # Analytics
 

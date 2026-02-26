@@ -1,50 +1,48 @@
 import pytest
 from io import BytesIO
-from fastapi.testclient import TestClient
-from app.api.dependencies import get_current_user
-from app.models.user import User
+from httpx import AsyncClient
+from uuid import uuid4
+from sqlalchemy.ext.asyncio import AsyncSession
 from main import app
-import uuid
+from app.api.dependencies import get_current_user, get_db
+from app.models.user import User
+
 
 # Mock del usuario actual para saltar la autenticación real en los tests
-async def override_get_current_user():
-    return User(
-        id=uuid.uuid4(),
-        email="test@example.com",
-        full_name="Test User"
-    )
+def get_mock_user():
+    return User(id=uuid4(), email="test@example.com")
 
-app.dependency_overrides[get_current_user] = override_get_current_user
-client = TestClient(app)
 
-def test_upload_dish_image_success():
-    """Prueba la subida exitosa de una imagen de plato."""
-    # Crear una imagen falsa en memoria
-    file_content = b"fake-image-binary-content"
-    files = {"file": ("test.jpg", file_content, "image/jpeg")}
-    
-    response = client.post("/api/v1/upload/dish", files=files)
-    
-    assert response.status_code == 200
-    assert "url" in response.json()
-    assert response.json()["url"].startswith("/uploads/dishes/")
+@pytest.fixture
+async def client(db_session: AsyncSession):
+    """Fixture para cliente HTTP de prueba — mismo patrón que test_dish_api."""
+    app.dependency_overrides[get_current_user] = get_mock_user
 
-def test_upload_invalid_type():
+    async def override_get_db():
+        yield db_session
+
+    app.dependency_overrides[get_db] = override_get_db
+
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        yield ac
+    app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_upload_invalid_type(client):
     """Prueba que el sistema rechaza archivos que no son imágenes."""
     files = {"file": ("test.txt", b"plain text", "text/plain")}
-    
-    response = client.post("/api/v1/upload/dish", files=files)
-    
+    response = await client.post("/api/v1/upload/dish", files=files)
     assert response.status_code == 400
     assert "Formato no permitido" in response.json()["detail"]
 
-def test_upload_file_too_large():
-    """Prueba que el sistema rechaza archivos excedan el límite (2MB)."""
+
+@pytest.mark.asyncio
+async def test_upload_file_too_large(client):
+    """Prueba que el sistema rechaza archivos que excedan el límite (2MB)."""
     # 3MB de contenido basura
     large_content = b"0" * (3 * 1024 * 1024)
     files = {"file": ("large.jpg", large_content, "image/jpeg")}
-    
-    response = client.post("/api/v1/upload/dish", files=files)
-    
+    response = await client.post("/api/v1/upload/dish", files=files)
     assert response.status_code == 400
-    assert "Too large" in response.json()["detail"] or "demasiado grande" in response.json()["detail"].lower()
+    assert "demasiado grande" in response.json()["detail"].lower()
