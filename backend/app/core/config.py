@@ -1,4 +1,4 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
 
 
@@ -30,9 +30,22 @@ class Settings(BaseSettings):
     # Rate Limiting
     RATE_LIMIT_PER_MINUTE: int = 100
     
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
+    # Storage & Images
+    UPLOAD_DIR: str = "uploads"
+    MAX_IMAGE_SIZE: int = 2 * 1024 * 1024  # 2MB
+    ALLOWED_IMAGE_TYPES: list[str] = ["image/jpeg", "image/png", "image/webp"]
+    IMAGE_QUALITY: int = 80
+    DISH_IMAGE_SIZE: tuple[int, int] = (800, 600)
+    
+    # Worker Pool
+    IMAGE_WORKERS: int = 2  # Número de procesos concurrentes
+    IMAGE_QUEUE_SIZE: int = 20  # Tamaño máximo de la cola en memoria
+    
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        case_sensitive=True,
+        extra="ignore"
+    )
 
 
 settings = Settings()
