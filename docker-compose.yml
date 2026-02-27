@@ -1,0 +1,54 @@
+version: "3.9"
+
+services:
+  # Base de datos PostgreSQL
+  db:
+    image: postgres:16-alpine
+    container_name: livemenu-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: livemenu
+      POSTGRES_PASSWORD: livemenu123
+      POSTGRES_DB: livemenu_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U livemenu -d livemenu_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Backend FastAPI
+  backend:
+    build: ./backend
+    container_name: livemenu-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_USER: livemenu
+      POSTGRES_PASSWORD: livemenu123
+      POSTGRES_DB: livemenu_db
+      POSTGRES_PORT: 5432
+      SECRET_KEY: "livemenu-super-secret-key-change-in-prod-min-32-chars!!"
+    depends_on:
+      db:
+        condition: service_healthy
+    command: >
+      sh -c "python -m app.db.init_db && uvicorn main:app --host 0.0.0.0 --port 8000"
+
+  # Frontend React (Vite)
+  frontend:
+    build: ./frontend
+    container_name: livemenu-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
