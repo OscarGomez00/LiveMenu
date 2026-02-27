@@ -9,6 +9,7 @@ passlib[bcrypt]==1.7.4
 python-multipart==0.0.6
 alembic==1.13.1
 qrcode[pil]==7.4.2
+greenlet
 
 # Testing
 pytest==7.4.4
