@@ -15,18 +15,20 @@ from app.api.v1 import (
     analytics
 )
 
-# Router principal
 api_router = APIRouter()
 
-# Incluir todos los routers
-# Cada desarrollador debe incluir su router aquí cuando lo complete
 
+feat/CU02-gestion-restaurante
 # TODO: Descomentar conforme se implementen
 # api_router.include_router(auth.router)           # Auth endpoints
 api_router.include_router(restaurants.router)    # Restaurant CRUD
 api_router.include_router(categories.router)     # Category CRUD
+# Routers activos
+api_router.include_router(auth.router)           
+# api_router.include_router(restaurants.router)    # Restaurant CRUD
+# api_router.include_router(categories.router)     # Category CRUD
 # api_router.include_router(dishes.router)         # Dish CRUD
-# api_router.include_router(menu.router)           # Public menu
-# api_router.include_router(qr.router)             # QR generation
+api_router.include_router(menu.router)           # Public menu
+api_router.include_router(qr.router)              # QR generation (GET /api/v1/admin/qr)
 # api_router.include_router(upload.router)         # Image upload
 # api_router.include_router(analytics.router)      # Analytics

@@ -10,13 +10,9 @@ from app.models import User, Restaurant, Category, Dish
 async def init_db():
     """Inicializa la base de datos creando todas las tablas."""
     async with engine.begin() as conn:
-        # Eliminar todas las tablas (solo para desarrollo)
-        # await conn.run_sync(Base.metadata.drop_all)
-        
-        # Crear todas las tablas
         await conn.run_sync(Base.metadata.create_all)
     
-    print("✅ Base de datos inicializada correctamente")
+    print("Base de datos inicializada correctamente")
 
 
 if __name__ == "__main__":
