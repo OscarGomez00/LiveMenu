@@ -1,11 +1,14 @@
 /**
  * Dashboard del administrador.
  * Muestra restaurantes y permite generar QR.
+ * Incluye acceso rápido a gestión de platos (CU-04).
  */
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import api from "../../services/api";
 import QrGenerator from "../../components/QrGenerator";
+import { UtensilsCrossed } from "lucide-react";
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -39,6 +42,25 @@ export default function DashboardPage() {
           Bienvenido, <strong>{user?.email}</strong>
         </p>
       </div>
+
+      {/* Acciones rápidas */}
+      <section className="mb-8">
+        <h2 className="text-xl font-semibold text-slate-900 mb-4">Acciones rápidas</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <Link
+            to="/admin/dishes"
+            className="flex items-center gap-4 bg-white border border-gray-100 rounded-xl p-5 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all no-underline group"
+          >
+            <div className="bg-indigo-50 p-3 rounded-lg group-hover:bg-indigo-100 transition-colors">
+              <UtensilsCrossed size={22} className="text-indigo-600" />
+            </div>
+            <div>
+              <p className="font-semibold text-slate-900 text-sm">Gestionar Platos</p>
+              <p className="text-gray-400 text-xs">Crea, edita y administra el menú</p>
+            </div>
+          </Link>
+        </div>
+      </section>
 
       {error && (
         <div className="bg-red-50 text-red-700 border border-red-200 px-4 py-3 rounded-lg mb-4 text-sm">

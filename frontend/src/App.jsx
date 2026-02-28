@@ -7,6 +7,7 @@ import MenuPage from "./pages/public/MenuPage";
 import LoginPage from "./pages/admin/LoginPage";
 import RegisterPage from "./pages/admin/RegisterPage";
 import DashboardPage from "./pages/admin/DashboardPage";
+import DishesPage from "./pages/admin/DishesPage";
 
 function App() {
   return (
@@ -28,6 +29,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <DashboardPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/dishes"
+              element={
+                <ProtectedRoute>
+                  <DishesPage />
                 </ProtectedRoute>
               }
             />
