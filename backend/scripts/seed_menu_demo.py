@@ -99,7 +99,6 @@ async def main() -> None:
         owner_id = await _get_or_create_owner(db)
 
         for rest_data in RESTAURANTS:
-            # Restaurant
             stmt = select(Restaurant).where(Restaurant.slug == rest_data["slug"])
             rest = (await db.execute(stmt)).scalars().first()
 
@@ -136,7 +135,6 @@ async def main() -> None:
                     print(f"Category creada: {cat_name}")
 
                 for dish_name, price in dishes:
-                    # Select ONLY existing columns (evita 'descripcion' missing column)
                     dish_exists_stmt = (
                         select(Dish.id)
                         .where(Dish.category_id == category.id)
@@ -146,7 +144,6 @@ async def main() -> None:
                     dish_id = (await db.execute(dish_exists_stmt)).scalar_one_or_none()
 
                     if not dish_id:
-                        # Insert ONLY simple columns (evita defaults ORM para columnas que no existen)
                         await db.execute(
                             insert(Dish.__table__).values(
                                 id=uuid.uuid4(),

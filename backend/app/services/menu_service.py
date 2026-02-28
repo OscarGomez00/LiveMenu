@@ -18,7 +18,6 @@ class MenuService:
         c = Category.__table__
         d = Dish.__table__
 
-        # Restaurant: SOLO columnas existentes
         rest_stmt = select(r.c.id, r.c.nombre, r.c.slug).where(r.c.slug == slug)
         rest_row = (await db.execute(rest_stmt)).first()
         if not rest_row:
@@ -26,12 +25,10 @@ class MenuService:
 
         rest_id, rest_nombre, rest_slug = rest_row
 
-        # Categories: SOLO columnas existentes
         cat_stmt = select(c.c.id, c.c.nombre).where(c.c.restaurant_id == rest_id)
         cat_rows = (await db.execute(cat_stmt)).all()
         cat_ids = [row[0] for row in cat_rows]
 
-        # Dishes: SOLO columnas existentes
         dishes_by_cat: Dict[str, list[Dict[str, Any]]] = {}
         if cat_ids:
             dish_stmt = select(d.c.id, d.c.nombre, d.c.precio, d.c.category_id).where(d.c.category_id.in_(cat_ids))
@@ -49,7 +46,5 @@ class MenuService:
                 for cat_id, cat_nombre in cat_rows
             ],
             "cache": {"ttl_seconds": ttl_seconds},
-            # (si quieres timestamp, agrégalo al schema también)
-            # "generated_at": datetime.now(timezone.utc).isoformat(),
         }
         return payload
