@@ -42,6 +42,7 @@ class MenuCacheOut(BaseModel):
 class PublicMenuDataOut(BaseModel):
     restaurant: PublicRestaurantOut
     categories: List[PublicCategoryOut]
+    generated_at: str
     cache: MenuCacheOut
 
 
