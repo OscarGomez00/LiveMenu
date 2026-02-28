@@ -44,6 +44,14 @@ app.add_middleware(
     requests_per_minute=settings.RATE_LIMIT_PER_MINUTE
 )
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"], # El puerto de tu Frontend
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # Incluir routers de API v1
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
