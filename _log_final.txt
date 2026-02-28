@@ -1,5 +1,0 @@
-﻿732049f fix(upload): registrar endpoint de carga y corregir tests de autenticacion
-f3bd1bc feat(dishes): implementar gestion de platos (CU-04)
-eb3ef15 feat(images): implementar worker pool de procesamiento (CU-05)
-482427b Add gitignore and docker postgres setup for local development
-6b37318 Update files

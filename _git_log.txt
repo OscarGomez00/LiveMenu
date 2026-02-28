@@ -1,5 +1,0 @@
-﻿2a25b35 (HEAD -> feat/CU05-carga-imagenes) feat(dishes): implementar gestion de platos CU-04 con API, repositorio, servicio y tests
-f6c5db3 feat: implementar procesamiento de im├ígenes con worker pool (CU-05)
-6eee34e (refs/stash) WIP on feature/gestion-platos-cu04: f122ff7 fix(dishes): restaurar CategoryRepository m├¡nimo necesario para validaci├│n de platos
-3b76cf5 index on feature/gestion-platos-cu04: f122ff7 fix(dishes): restaurar CategoryRepository m├¡nimo necesario para validaci├│n de platos
-f122ff7 (origin/feature/gestion-platos-cu04, feature/gestion-platos-cu04) fix(dishes): restaurar CategoryRepository m├¡nimo necesario para validaci├│n de platos
