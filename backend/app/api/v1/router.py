@@ -13,7 +13,7 @@ from app.api.v1.admin.router import admin_router
 
 api_router = APIRouter()
 
-feat/CU02-gestion-restaurante
+
 # TODO: Descomentar conforme se implementen
 # api_router.include_router(auth.router)           # Auth endpoints
 api_router.include_router(restaurants.router)    # Restaurant CRUD
