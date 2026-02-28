@@ -8,7 +8,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import api from "../../services/api";
 import QrGenerator from "../../components/QrGenerator";
-import { UtensilsCrossed } from "lucide-react";
+import { UtensilsCrossed, LayoutList } from "lucide-react";
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -57,6 +57,19 @@ export default function DashboardPage() {
             <div>
               <p className="font-semibold text-slate-900 text-sm">Gestionar Platos</p>
               <p className="text-gray-400 text-xs">Crea, edita y administra el menú</p>
+            </div>
+          </Link>
+
+          <Link
+            to="/admin/categorias"
+            className="flex items-center gap-4 bg-white border border-gray-100 rounded-xl p-5 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all no-underline group"
+          >
+            <div className="bg-emerald-50 p-3 rounded-lg group-hover:bg-emerald-100 transition-colors">
+              <LayoutList size={22} className="text-emerald-600" />
+            </div>
+            <div>
+              <p className="font-semibold text-slate-900 text-sm">Gestionar Categorías</p>
+              <p className="text-gray-400 text-xs">Organiza las secciones del menú</p>
             </div>
           </Link>
         </div>

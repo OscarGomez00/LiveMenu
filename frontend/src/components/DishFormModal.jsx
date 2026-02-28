@@ -3,6 +3,7 @@
  * Integra la carga de imagen (CU-05) con el formulario de plato (CU-04).
  */
 import { useState, useEffect, useRef } from "react";
+import { categoryService } from "../services/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,6 +30,15 @@ export default function DishFormModal({ dish, onClose, onSaved }) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const fileInputRef = useRef(null);
+    const [categories, setCategories] = useState([]);
+    const [loadingCategories, setLoadingCategories] = useState(true);
+
+    useEffect(() => {
+        categoryService.getAll()
+            .then((res) => setCategories(res.data))
+            .catch(() => setCategories([]))
+            .finally(() => setLoadingCategories(false));
+    }, []);
 
     useEffect(() => {
         if (dish) {
@@ -253,16 +263,29 @@ export default function DishFormModal({ dish, onClose, onSaved }) {
                     {/* Categoría */}
                     <div className="space-y-1.5">
                         <Label htmlFor="category_id">
-                            ID de Categoría <span className="text-red-500">*</span>
+                            Categoría <span className="text-red-500">*</span>
                         </Label>
-                        <Input
-                            id="category_id"
-                            name="category_id"
-                            value={form.category_id}
-                            onChange={handleChange}
-                            placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-                            required
-                        />
+                        {loadingCategories ? (
+                            <p className="text-sm text-gray-400">Cargando categorías...</p>
+                        ) : categories.length === 0 ? (
+                            <p className="text-sm text-amber-600">No hay categorías disponibles. Crea una primero.</p>
+                        ) : (
+                            <select
+                                id="category_id"
+                                name="category_id"
+                                value={form.category_id}
+                                onChange={handleChange}
+                                required
+                                className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white"
+                            >
+                                <option value="">-- Selecciona una categoría --</option>
+                                {categories.map((cat) => (
+                                    <option key={cat.id} value={cat.id}>
+                                        {cat.nombre}
+                                    </option>
+                                ))}
+                            </select>
+                        )}
                     </div>
 
                     {/* Toggles */}
