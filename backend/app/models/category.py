@@ -1,16 +1,14 @@
 import uuid
-from sqlalchemy import Column, String, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Column, String, ForeignKey, UUID
 from sqlalchemy.orm import relationship
-from app.db.session import Base
-
+from app.db.session import Base, GUID
 
 class Category(Base):
     __tablename__ = "categories"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    id = Column(GUID, primary_key=True, default=uuid.uuid4, index=True)
     nombre = Column(String, nullable=False)
-    restaurant_id = Column(UUID(as_uuid=True), ForeignKey("restaurants.id"), nullable=False)
+    restaurant_id = Column(GUID, ForeignKey("restaurants.id"), nullable=False)
     
     # Relaciones
     restaurant = relationship("Restaurant", back_populates="categories")
