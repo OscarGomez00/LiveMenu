@@ -5,7 +5,7 @@ import uuid
 from decimal import Decimal
 from datetime import datetime
 
-from sqlalchemy import select
+from sqlalchemy import select, insert
 
 from app.db.session import AsyncSessionLocal
 from app.models.restaurant import Restaurant
@@ -16,6 +16,7 @@ try:
     from app.models.user import User
 except Exception:
     from app.models import User
+
 
 RESTAURANTS = [
     {
@@ -47,7 +48,6 @@ RESTAURANTS = [
 
 def _guess_value(col_name: str):
     n = col_name.lower()
-
     if "email" in n:
         return f"demo_{uuid.uuid4().hex[:8]}@livemenu.local"
     if "password" in n:
@@ -62,23 +62,19 @@ def _guess_value(col_name: str):
         return True
     if "created" in n or "updated" in n:
         return datetime.utcnow()
-
     return "demo"
 
 
 def _build_required_kwargs(Model, preferred: dict):
     kwargs = dict(preferred)
-
     for col in Model.__table__.columns:
         if col.primary_key:
             continue
         if col.name in kwargs:
             continue
-
         has_default = col.default is not None or col.server_default is not None
         if (not col.nullable) and (not has_default):
             kwargs[col.name] = _guess_value(col.name)
-
     return kwargs
 
 
@@ -103,7 +99,6 @@ async def main() -> None:
         owner_id = await _get_or_create_owner(db)
 
         for rest_data in RESTAURANTS:
-            # Restaurant
             stmt = select(Restaurant).where(Restaurant.slug == rest_data["slug"])
             rest = (await db.execute(stmt)).scalars().first()
 
@@ -140,28 +135,30 @@ async def main() -> None:
                     print(f"Category creada: {cat_name}")
 
                 for dish_name, price in dishes:
-                    dish_stmt = (
-                        select(Dish)
+                    dish_exists_stmt = (
+                        select(Dish.id)
                         .where(Dish.category_id == category.id)
                         .where(Dish.nombre == dish_name)
+                        .limit(1)
                     )
-                    dish = (await db.execute(dish_stmt)).scalars().first()
+                    dish_id = (await db.execute(dish_exists_stmt)).scalar_one_or_none()
 
-                    if not dish:
-                        dish = Dish(
-                            id=uuid.uuid4(),
-                            category_id=category.id,
-                            nombre=dish_name,
-                            precio=Decimal(price),
+                    if not dish_id:
+                        await db.execute(
+                            insert(Dish.__table__).values(
+                                id=uuid.uuid4(),
+                                category_id=category.id,
+                                nombre=dish_name,
+                                precio=Decimal(price),
+                            )
                         )
-                        db.add(dish)
                         print(f"Dish creado: {dish_name}")
 
         await db.commit()
         print("\nSeed completado. Prueba estos slugs en Swagger:")
-        print("\n- arepas-power")
-        print("\n- sushi-flex")
-        print("\n- burger-brutal")
+        print("- arepas-power")
+        print("- sushi-flex")
+        print("- burger-brutal")
 
 
 if __name__ == "__main__":
