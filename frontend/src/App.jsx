@@ -40,7 +40,9 @@ function App() {
             <Route
               path="/admin/restaurante"
               element={
+                <ProtectedRoute>
                   <RestaurantConfig />
+                </ProtectedRoute>
               }
             />
 
@@ -48,7 +50,9 @@ function App() {
             <Route
               path="/admin/categorias"
               element={
+                <ProtectedRoute>
                   <CategoryManager />
+                </ProtectedRoute>
               }
             />
 
