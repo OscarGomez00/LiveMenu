@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import Column, String, ForeignKey, UUID
+from sqlalchemy import Column, String, ForeignKey, UUID, Text, JSON
 from sqlalchemy.orm import relationship
 from app.db.session import Base, GUID
 
@@ -14,7 +14,7 @@ class Restaurant(Base):
     logo_url = Column(String, nullable=True)
     telefono = Column(String, nullable=True)
     direccion = Column(String, nullable=True)
-    horarios = Column(JSONB, nullable=True) # Tipo JSONB para flexibilidad
+    horarios = Column(JSON, nullable=True) # Tipo JSONB para flexibilidad
     
     id = Column(GUID, primary_key=True, default=uuid.uuid4, index=True)
     nombre = Column(String, nullable=False)
