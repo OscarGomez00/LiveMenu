@@ -15,7 +15,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U livemenu -d livemenu_db"]
+      test: [ "CMD-SHELL", "pg_isready -U livemenu -d livemenu_db" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -52,3 +52,5 @@ services:
 
 volumes:
   pgdata:
+
+

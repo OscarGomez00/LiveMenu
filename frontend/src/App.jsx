@@ -9,6 +9,10 @@ import RegisterPage from "./pages/admin/RegisterPage";
 import DashboardPage from "./pages/admin/DashboardPage";
 import DishesPage from "./pages/admin/DishesPage";
 
+// 1. IMPORTACIONES DE LOS NUEVOS CASOS DE USO
+import CategoryManager from "./pages/admin/CategoryManager";
+import RestaurantConfig from "./pages/admin/RestaurantConfig";
+
 function App() {
   return (
     <BrowserRouter>
@@ -40,6 +44,28 @@ function App() {
                 </ProtectedRoute>
               }
             />
+
+            {/* 2. NUEVA RUTA: GESTIÓN DE RESTAURANTE (CU-02) */}
+            <Route
+              path="/admin/restaurante"
+              element={
+                <ProtectedRoute>
+                  <RestaurantConfig />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* 3. NUEVA RUTA: GESTIÓN DE CATEGORÍAS (CU-03) */}
+            <Route
+              path="/admin/categorias"
+              element={
+                <ProtectedRoute>
+                  <CategoryManager />
+                </ProtectedRoute>
+              }
+            />
+
+
           </Routes>
         </main>
       </AuthProvider>

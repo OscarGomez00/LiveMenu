@@ -13,6 +13,11 @@ from app.api.v1.admin.router import admin_router
 
 api_router = APIRouter()
 
+
+# TODO: Descomentar conforme se implementen
+# api_router.include_router(auth.router)           # Auth endpoints
+api_router.include_router(restaurants.router)    # Restaurant CRUD
+api_router.include_router(categories.router)     # Category CRUD
 # Routers activos
 api_router.include_router(auth.router)
 

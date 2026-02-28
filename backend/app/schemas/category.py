@@ -1,25 +1,22 @@
 from pydantic import BaseModel, Field
 from uuid import UUID
+from datetime import datetime
 from typing import Optional
 
+class CategoryBase(BaseModel):
+    nombre: str = Field(..., max_length=50, description="Nombre de la categoría")
+    descripcion: Optional[str] = None
+    posicion: int = Field(0, description="Usado para ordenamiento")
+    activa: bool = True
 
-# Schemas de entrada
-class CategoryCreate(BaseModel):
-    """Schema para crear una categoría."""
-    nombre: str = Field(..., min_length=1, max_length=200)
-    restaurant_id: UUID
+class CategoryCreate(CategoryBase):
+    pass  # Restaurante_ID se suele obtener del contexto del usuario/restaurante
 
-
-class CategoryUpdate(BaseModel):
-    """Schema para actualizar una categoría."""
-    nombre: Optional[str] = Field(None, min_length=1, max_length=200)
-
-
-# Schemas de salida
-class CategoryResponse(BaseModel):
-    """Schema de respuesta con datos de categoría."""
+class CategoryResponse(CategoryBase):
     id: UUID
-    nombre: str
-    restaurant_id: UUID
-    
-    model_config = {"from_attributes": True}
+    restaurante_id: UUID
+    creado_en: datetime
+    actualizado_en: datetime
+
+    class Config:
+        from_attributes = True

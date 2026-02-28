@@ -38,4 +38,28 @@ api.interceptors.response.use(
   }
 );
 
+/**
+ * Servicios para el CU-02: Gestión de Restaurante
+ */
+export const restaurantService = {
+  // Obtener datos del restaurante del usuario autenticado
+  get: () => api.get("/restaurants/me"), 
+  // Crear o actualizar (según tu lógica de backend)
+  update: (data) => api.post("/restaurants/", data),
+};
+
+/**
+ * Servicios para el CU-03: Gestión de Categorías
+ */
+export const categoryService = {
+  // Listar todas las categorías (Requisito 2 del flujo principal)
+  getAll: () => api.get("/categories/"),
+  // Crear nueva categoría (Requisito 3.1)
+  create: (data) => api.post("/categories/", data),
+  // Editar categoría (Requisito 3.2)
+  update: (id, data) => api.put(`/categories/${id}`, data),
+  // Eliminar categoría (Requisito 3.3)
+  delete: (id) => api.delete(`/categories/${id}`),
+};
+
 export default api;
