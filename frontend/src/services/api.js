@@ -43,7 +43,7 @@ api.interceptors.response.use(
  */
 export const restaurantService = {
   // Obtener datos del restaurante del usuario autenticado
-  get: () => api.get("/restaurants/me"), 
+  get: () => api.get("/restaurants/me"),
   // Crear o actualizar (según tu lógica de backend)
   update: (data) => api.post("/restaurants/", data),
 };

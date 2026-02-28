@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, status, HTTPException
 from typing import List
 from app.schemas.category import CategoryCreate, CategoryResponse
 
-router = APIRouter(prefix="/admin/categories", tags=["Admin Categorías"])
+router = APIRouter(prefix="/categories", tags=["Admin Categorías"])
 
 @router.get("/", response_model=List[CategoryResponse])
 async def list_categories():

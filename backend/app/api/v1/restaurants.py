@@ -7,7 +7,7 @@ from app.models.restaurant import Restaurant
 from app.schemas.restaurant import RestaurantCreate, RestaurantUpdate, RestaurantResponse
 
 router = APIRouter(
-    prefix="/api/v1/admin/restaurant",
+    prefix="/restaurants",
     tags=["Admin Restaurante"]
 )
 

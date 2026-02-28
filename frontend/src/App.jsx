@@ -7,6 +7,7 @@ import MenuPage from "./pages/public/MenuPage";
 import LoginPage from "./pages/admin/LoginPage";
 import RegisterPage from "./pages/admin/RegisterPage";
 import DashboardPage from "./pages/admin/DashboardPage";
+import DishesPage from "./pages/admin/DishesPage";
 
 // 1. IMPORTACIONES DE LOS NUEVOS CASOS DE USO
 import CategoryManager from "./pages/admin/CategoryManager";
@@ -35,6 +36,14 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/admin/dishes"
+              element={
+                <ProtectedRoute>
+                  <DishesPage />
+                </ProtectedRoute>
+              }
+            />
 
             {/* 2. NUEVA RUTA: GESTIÓN DE RESTAURANTE (CU-02) */}
             <Route
@@ -55,6 +64,7 @@ function App() {
                 </ProtectedRoute>
               }
             />
+
 
           </Routes>
         </main>
