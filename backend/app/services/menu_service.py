@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List
-from uuid import UUID
+from typing import Any, Dict
 from datetime import datetime, timezone
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,62 +13,43 @@ from app.models.dish import Dish
 
 class MenuService:
     @staticmethod
-    async def build_public_menu_payload(db: AsyncSession, slug: str, ttl_seconds: int,) -> Dict[str, Any]:
-        rest_re = select(Restaurant).where(Restaurant.slug == slug)
-        restau = (await db.execute(rest_re)).scalars().first()
-        if not restau:
+    async def build_public_menu_payload(db: AsyncSession, slug: str, ttl_seconds: int) -> Dict[str, Any]:
+        r = Restaurant.__table__
+        c = Category.__table__
+        d = Dish.__table__
+
+        # Restaurant: SOLO columnas existentes
+        rest_stmt = select(r.c.id, r.c.nombre, r.c.slug).where(r.c.slug == slug)
+        rest_row = (await db.execute(rest_stmt)).first()
+        if not rest_row:
             return {}
 
-        cat_cat = select(Category).where(Category.restaurant_id == restau.id)
-        categories = (await db.execute(cat_cat)).scalars().all()
+        rest_id, rest_nombre, rest_slug = rest_row
 
-        cat_ids = [cat.id for cat in categories]
+        # Categories: SOLO columnas existentes
+        cat_stmt = select(c.c.id, c.c.nombre).where(c.c.restaurant_id == rest_id)
+        cat_rows = (await db.execute(cat_stmt)).all()
+        cat_ids = [row[0] for row in cat_rows]
 
-        if cat_ids:
-            dish_dih = select(Dish).where(Dish.category_id.in_(cat_ids))
-            dishes = (await db.execute(dish_dih)).scalars().all()
-        else:
-            dishes = []
-
+        # Dishes: SOLO columnas existentes
         dishes_by_cat: Dict[str, list[Dict[str, Any]]] = {}
-        for dis in dishes:
-            dishes_by_cat.setdefault(str(dis.category_id), []).append(
-                {
-                    "id": str(dis.id),
-                    "name": dis.nombre,
-                    "description": getattr(dis, "descripcion", None),
-                    "price": float(dis.precio),
-                    "offer_price": float(getattr(dis, "precio_oferta", None)) if getattr(dis, "precio_oferta", None) else None,
-                    "image_url": getattr(dis, "imagen_url", None),
-                    "available": getattr(dis, "disponible", True),
-                    "featured": getattr(dis, "destacado", False),
-                    "tags": getattr(dis, "etiquetas", None) or [],
-                }
-            )
+        if cat_ids:
+            dish_stmt = select(d.c.id, d.c.nombre, d.c.precio, d.c.category_id).where(d.c.category_id.in_(cat_ids))
+            dish_rows = (await db.execute(dish_stmt)).all()
 
-        payload = {
-            "restaurant": {
-                "id": str(restau.id),
-                "name": restau.nombre,
-                "slug": restau.slug,
-                "description": getattr(restau, "descripcion", None),
-                "logo_url": getattr(restau, "logo_url", None),
-                "phone": getattr(restau, "telefono", None),
-                "address": getattr(restau, "direccion", None),
-                "hours": getattr(restau, "horarios", None),
-            },
+            for dish_id, dish_nombre, dish_precio, dish_cat_id in dish_rows:
+                dishes_by_cat.setdefault(str(dish_cat_id), []).append(
+                    {"id": str(dish_id), "name": dish_nombre, "price": float(dish_precio)}
+                )
+
+        payload: Dict[str, Any] = {
+            "restaurant": {"id": str(rest_id), "name": rest_nombre, "slug": rest_slug},
             "categories": [
-                {
-                    "id": str(cat.id),
-                    "name": cat.nombre,
-                    "description": getattr(cat, "descripcion", None),
-                    "position": getattr(cat, "posicion", None),
-                    "dishes": dishes_by_cat.get(str(cat.id), []),
-                }
-                for cat in categories
+                {"id": str(cat_id), "name": cat_nombre, "dishes": dishes_by_cat.get(str(cat_id), [])}
+                for cat_id, cat_nombre in cat_rows
             ],
-            "generated_at": datetime.now(timezone.utc).isoformat(),
             "cache": {"ttl_seconds": ttl_seconds},
+            # (si quieres timestamp, agrégalo al schema también)
+            # "generated_at": datetime.now(timezone.utc).isoformat(),
         }
-
         return payload
