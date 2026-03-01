@@ -41,3 +41,8 @@ build/
 # =========================
 htmlcov/
 .coverage
+
+# =========================
+# Documentation (local only)
+# =========================
+docs/

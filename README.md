@@ -2,6 +2,8 @@
 
 Sistema de menú digital para restaurantes con panel de administración y vista pública accesible por QR.
 
+---
+
 ## Arquitectura
 
 | Capa | Tecnología |
@@ -11,17 +13,31 @@ Sistema de menú digital para restaurantes con panel de administración y vista 
 | **Base de datos** | PostgreSQL 16 |
 | **Contenedores** | Docker Compose |
 
-## Casos de Uso implementados
+---
 
-| CU | Descripción | Estado |
-|----|-------------|--------|
+## Casos de Uso Implementados
+
+| CU | Descripción |
+|----|-------------|
 | CU-01 | Registro y autenticación JWT |
 | CU-02 | CRUD Restaurante (nombre, descripción, logo, horarios, contacto, slug) |
 | CU-03 | CRUD Categorías (nombre, descripción, orden, activar/desactivar) |
 | CU-04 | CRUD Platos (nombre, precio, imagen, disponibilidad, soft-delete) |
-| CU-05 | Carga de imágenes (3 variantes WebP: 150px, 400px, 800px) |
+| CU-05 | Carga de imágenes (conversión a WebP via Worker Pool) |
 | CU-06 | Menú público por slug (filtrado por disponible/activa, caché en memoria) |
 | CU-07 | Generación de código QR (PNG/SVG, 4 tamaños, colores custom) |
+
+---
+
+## Documentación
+
+| Documento | Descripción |
+|-----------|-------------|
+| [docs/architecture.md](docs/architecture.md) | Diagrama de arquitectura, modelo ER, árbol de componentes |
+| [docs/api.md](docs/api.md) | Referencia completa de la API REST con ejemplos |
+| [docs/deployment.md](docs/deployment.md) | Instrucciones de deployment (Docker y local) |
+
+---
 
 ## Despliegue con Docker
 
@@ -33,7 +49,7 @@ Sistema de menú digital para restaurantes con panel de administración y vista 
 
 ```bash
 # Clonar y entrar al directorio
-cd LiveMenu
+cd live_menu
 
 # Construir e iniciar los 3 servicios (db, backend, frontend)
 docker compose up --build -d
@@ -48,8 +64,7 @@ docker compose ps
 |----------|-----|
 | Frontend | http://localhost:5173 |
 | Backend (API) | http://localhost:8000 |
-| Swagger UI | http://localhost:8000/api/v1/openapi.json |
-| Docs interactivos | http://localhost:8000/docs |
+| Swagger UI | http://localhost:8000/api/v1/docs |
 
 ### Variables de entorno
 
@@ -69,16 +84,19 @@ docker compose down        # Detener contenedores
 docker compose down -v     # Detener y borrar datos de BD
 ```
 
-## Desarrollo local (sin Docker)
+---
+
+## Desarrollo Local (sin Docker)
 
 ### Backend
 
 ```bash
 cd backend
-python -m venv .venv && source .venv/bin/activate
+python -m venv .venv && source .venv/bin/activate  # Linux/Mac
+# o: .venv\Scripts\activate  (Windows)
 pip install -r requirements.txt
 
-# Necesitas PostgreSQL corriendo localmente o vía Docker:
+# Necesitas PostgreSQL corriendo (o levanta solo la BD con Docker):
 docker compose up db -d
 
 # Inicializar BD y correr servidor
@@ -101,21 +119,23 @@ cd backend
 pytest -v     # Usa SQLite in-memory, no necesita PostgreSQL
 ```
 
-## API Endpoints principales
+---
+
+## API Endpoints Principales
 
 ### Autenticación
 - `POST /api/v1/auth/register` — Registro de usuario
 - `POST /api/v1/auth/login` — Login (retorna JWT)
 
 ### Admin (requieren JWT)
-- `GET/POST/PUT/DELETE /api/v1/admin/restaurant` — CRUD restaurante
-- `GET/POST /api/v1/admin/categories` — Listar/Crear categoría
-- `PUT/DELETE /api/v1/admin/categories/{id}` — Editar/Eliminar categoría
-- `PATCH /api/v1/admin/categories/reorder` — Reordenar categorías
+- `GET/POST/PUT/DELETE /api/v1/restaurants` — CRUD restaurante
+- `GET/POST /api/v1/categories` — Listar/Crear categoría
+- `PUT/DELETE /api/v1/categories/{id}` — Editar/Eliminar categoría
 - `GET/POST /api/v1/admin/dishes` — Listar/Crear plato
 - `PUT/DELETE /api/v1/admin/dishes/{id}` — Editar/Eliminar plato
-- `POST /api/v1/admin/upload/dish` — Subir imagen de plato
-- `GET /api/v1/admin/qr` — Generar código QR (params: size, format, fg_color, bg_color)
+- `PATCH /api/v1/admin/dishes/{id}/availability` — Alternar disponibilidad
+- `POST /api/v1/upload/dish` — Subir imagen de plato
+- `GET /api/v1/admin/qr` — Generar código QR (params: size, format, color, bg_color)
 
 ### Público
 - `GET /api/v1/menu/{slug}` — Ver menú del restaurante
