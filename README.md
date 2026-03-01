@@ -15,44 +15,13 @@ Sistema de menú digital para restaurantes con panel de administración y vista 
 
 | CU | Descripción | Estado |
 |----|-------------|--------|
-| CU-01 | Registro y autenticación JWT | Completo |
-| CU-02 | CRUD Restaurante (nombre, descripción, logo, horarios, contacto, slug) | Completo |
-| CU-03 | CRUD Categorías (nombre, descripción, orden, activar/desactivar) | Completo |
-| CU-04 | CRUD Platos (nombre, precio, imagen, disponibilidad, soft-delete) | Completo |
-| CU-05 | Carga de imágenes (3 variantes WebP: 150px, 400px, 800px) | Completo |
-| CU-06 | Menú público por slug (filtrado por disponible/activa) | Backend completo |
-| CU-07 | Generación de código QR | Completo |
-
-## Estructura del proyecto
-
-```
-LiveMenu/
-├── docker-compose.yml
-├── backend/
-│   ├── main.py                      # Punto de entrada FastAPI
-│   ├── app/
-│   │   ├── api/v1/                  # Endpoints REST
-│   │   │   ├── auth.py              # Login / Registro
-│   │   │   ├── menu.py              # Menú público
-│   │   │   ├── qr.py                # Generación QR
-│   │   │   ├── upload.py            # Carga de imágenes
-│   │   │   └── admin/               # Endpoints protegidos
-│   │   │       ├── restaurants.py   # CRUD restaurante
-│   │   │       ├── categories.py    # CRUD categorías
-│   │   │       └── dishes.py        # CRUD platos
-│   │   ├── models/                  # Modelos SQLAlchemy
-│   │   ├── schemas/                 # Schemas Pydantic
-│   │   ├── services/                # Lógica de negocio
-│   │   ├── repositories/            # Acceso a datos
-│   │   └── core/                    # Config, seguridad
-│   └── tests/                       # Tests con pytest
-└── frontend/
-    └── src/
-        ├── pages/admin/             # Panel de administración
-        ├── pages/public/            # Vista pública del menú
-        ├── services/                # Llamadas HTTP (Axios)
-        └── components/              # Componentes reutilizables
-```
+| CU-01 | Registro y autenticación JWT |
+| CU-02 | CRUD Restaurante (nombre, descripción, logo, horarios, contacto, slug) |
+| CU-03 | CRUD Categorías (nombre, descripción, orden, activar/desactivar) |
+| CU-04 | CRUD Platos (nombre, precio, imagen, disponibilidad, soft-delete) |
+| CU-05 | Carga de imágenes (3 variantes WebP: 150px, 400px, 800px) |
+| CU-06 | Menú público por slug (filtrado por disponible/activa) |
+| CU-07 | Generación de código QR |
 
 ## Despliegue con Docker
 
