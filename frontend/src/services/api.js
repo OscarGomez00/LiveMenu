@@ -43,9 +43,13 @@ api.interceptors.response.use(
  */
 export const restaurantService = {
   // Obtener datos del restaurante del usuario autenticado
-  get: () => api.get("/restaurants/me"),
-  // Crear o actualizar (según tu lógica de backend)
-  update: (data) => api.post("/restaurants/", data),
+  get: () => api.get("/admin/restaurant"),
+  // Crear restaurante
+  create: (data) => api.post("/admin/restaurant", data),
+  // Actualizar restaurante
+  update: (data) => api.put("/admin/restaurant", data),
+  // Eliminar restaurante
+  delete: () => api.delete("/admin/restaurant"),
 };
 
 /**
@@ -53,13 +57,15 @@ export const restaurantService = {
  */
 export const categoryService = {
   // Listar todas las categorías (Requisito 2 del flujo principal)
-  getAll: () => api.get("/categories/"),
+  getAll: () => api.get("/admin/categories"),
   // Crear nueva categoría (Requisito 3.1)
-  create: (data) => api.post("/categories/", data),
+  create: (data) => api.post("/admin/categories", data),
   // Editar categoría (Requisito 3.2)
-  update: (id, data) => api.put(`/categories/${id}`, data),
+  update: (id, data) => api.put(`/admin/categories/${id}`, data),
   // Eliminar categoría (Requisito 3.3)
-  delete: (id) => api.delete(`/categories/${id}`),
+  delete: (id) => api.delete(`/admin/categories/${id}`),
+  // Reordenar categorías
+  reorder: (orderedIds) => api.patch("/admin/categories/reorder", { ordered_ids: orderedIds }),
 };
 
 export default api;

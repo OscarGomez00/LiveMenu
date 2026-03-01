@@ -1,22 +1,39 @@
 from pydantic import BaseModel, Field
 from uuid import UUID
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
-class CategoryBase(BaseModel):
-    nombre: str = Field(..., max_length=50, description="Nombre de la categoría")
-    descripcion: Optional[str] = None
-    posicion: int = Field(0, description="Usado para ordenamiento")
-    activa: bool = True
 
-class CategoryCreate(CategoryBase):
-    pass  # Restaurante_ID se suele obtener del contexto del usuario/restaurante
+class CategoryCreate(BaseModel):
+    """Schema para crear una categoría."""
+    nombre: str = Field(..., min_length=1, max_length=50, description="Nombre de la categoría")
+    descripcion: Optional[str] = Field(None, max_length=200)
+    posicion: Optional[int] = Field(None, ge=0, description="Posición para ordenamiento")
+    activa: bool = Field(True, description="Si la categoría está activa")
 
-class CategoryResponse(CategoryBase):
+
+class CategoryUpdate(BaseModel):
+    """Schema para actualizar una categoría."""
+    nombre: Optional[str] = Field(None, min_length=1, max_length=50)
+    descripcion: Optional[str] = Field(None, max_length=200)
+    posicion: Optional[int] = Field(None, ge=0)
+    activa: Optional[bool] = None
+
+
+class CategoryResponse(BaseModel):
+    """Schema de respuesta de categoría."""
     id: UUID
-    restaurante_id: UUID
+    nombre: str
+    descripcion: Optional[str] = None
+    posicion: int = 0
+    activa: bool = True
+    restaurant_id: UUID
     creado_en: datetime
     actualizado_en: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
+
+
+class CategoryReorder(BaseModel):
+    """Schema para reordenar categorías."""
+    ordered_ids: List[UUID] = Field(..., description="Lista de IDs en el nuevo orden")

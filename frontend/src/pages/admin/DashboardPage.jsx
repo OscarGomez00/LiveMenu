@@ -19,8 +19,9 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchRestaurants = async () => {
       try {
-        const response = await api.get("/restaurants/");
-        setRestaurants(response.data);
+        const response = await api.get("/admin/restaurant");
+        // Backend returns a single restaurant object; wrap in array for the UI
+        setRestaurants(response.data ? [response.data] : []);
       } catch (err) {
         if (err.response?.status === 404 || err.response?.status === 405) {
           setRestaurants([]);
@@ -90,10 +91,16 @@ export default function DashboardPage() {
           <p className="text-gray-500">Cargando restaurantes...</p>
         ) : restaurants.length === 0 ? (
           <div className="bg-gray-50 p-8 rounded-xl text-center text-gray-500">
-            <p>No tienes restaurantes registrados aun.</p>
-            <p className="text-sm text-gray-400 mt-2">
-              El modulo de restaurantes sera implementado por el Desarrollador 2.
+            <p className="font-medium">No tienes un restaurante registrado aún.</p>
+            <p className="text-sm text-gray-400 mt-2 mb-4">
+              Crea tu restaurante para empezar a gestionar tu menú digital.
             </p>
+            <Link
+              to="/admin/restaurante"
+              className="inline-block bg-indigo-600 text-white px-6 py-2 rounded-lg font-semibold text-sm no-underline hover:bg-indigo-700 transition-colors"
+            >
+              Crear Restaurante
+            </Link>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

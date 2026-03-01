@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { restaurantService } from '../../services/api';
 
 export default function RestaurantConfig() {
   const [restaurant, setRestaurant] = useState({
@@ -6,19 +7,35 @@ export default function RestaurantConfig() {
     slug: '',
     descripcion: '',
     logo_url: '',
-    banner_url: '',
-    color_tema: '#ef4444', // Color por defecto (naranja/rojo)
-    activo: true
+    telefono: '',
+    direccion: '',
+    horarios: '',
   });
+  const [isNew, setIsNew] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [success, setSuccess] = useState('');
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const fetchRestaurant = async () => {
-      const res = await fetch('/api/v1/restaurant', {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setRestaurant(data);
+      try {
+        const res = await restaurantService.get();
+        setRestaurant({
+          nombre: res.data.nombre || '',
+          slug: res.data.slug || '',
+          descripcion: res.data.descripcion || '',
+          logo_url: res.data.logo_url || '',
+          telefono: res.data.telefono || '',
+          direccion: res.data.direccion || '',
+          horarios: typeof res.data.horarios === 'object' ? JSON.stringify(res.data.horarios || '') : (res.data.horarios || ''),
+        });
+        setIsNew(false);
+      } catch (err) {
+        if (err.response?.status === 404) {
+          setIsNew(true);
+        }
+      } finally {
+        setLoading(false);
       }
     };
     fetchRestaurant();
@@ -26,20 +43,55 @@ export default function RestaurantConfig() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await fetch('/api/v1/restaurant', {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      },
-      body: JSON.stringify(restaurant)
-    });
-    alert("Configuración total guardada.");
+    setError('');
+    setSuccess('');
+    try {
+      const payload = {
+        nombre: restaurant.nombre,
+        descripcion: restaurant.descripcion || null,
+        logo_url: restaurant.logo_url || null,
+        telefono: restaurant.telefono || null,
+        direccion: restaurant.direccion || null,
+        horarios: restaurant.horarios || null,
+      };
+
+      if (isNew) {
+        const res = await restaurantService.create(payload);
+        setRestaurant(prev => ({ ...prev, slug: res.data.slug }));
+        setIsNew(false);
+        setSuccess('Restaurante creado correctamente.');
+      } else {
+        await restaurantService.update(payload);
+        setSuccess('Configuración guardada correctamente.');
+      }
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Error al guardar la configuración.');
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20 text-gray-400">
+        <div className="w-6 h-6 border-2 border-orange-500 border-t-transparent rounded-full animate-spin mr-3" />
+        Cargando configuración...
+      </div>
+    );
+  }
 
   return (
     <div className="p-8 max-w-4xl mx-auto bg-white shadow-lg rounded-2xl border border-gray-100">
       <h2 className="text-3xl font-extrabold mb-8 text-gray-800 border-b pb-4">Perfil del Restaurante</h2>
+
+      {success && (
+        <div className="mb-4 bg-green-50 text-green-700 border border-green-200 px-4 py-3 rounded-lg text-sm">
+          {success}
+        </div>
+      )}
+      {error && (
+        <div className="mb-4 bg-red-50 text-red-700 border border-red-200 px-4 py-3 rounded-lg text-sm">
+          {error}
+        </div>
+      )}
       
       <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Nombre y Slug */}
@@ -53,7 +105,7 @@ export default function RestaurantConfig() {
         </div>
 
         <div className="space-y-2">
-          <label className="block text-sm font-bold text-gray-700 text-gray-400">Slug (Identificador único)</label>
+          <label className="block text-sm font-bold text-gray-400">Slug (generado automáticamente)</label>
           <input 
             type="text" value={restaurant.slug} disabled
             className="w-full p-3 border rounded-lg bg-gray-50 cursor-not-allowed"
@@ -71,8 +123,8 @@ export default function RestaurantConfig() {
           />
         </div>
 
-        {/* URLs de Imágenes */}
-        <div className="space-y-2">
+        {/* Logo URL */}
+        <div className="md:col-span-2 space-y-2">
           <label className="block text-sm font-bold text-gray-700">URL del Logo</label>
           <input 
             type="text" value={restaurant.logo_url}
@@ -82,39 +134,41 @@ export default function RestaurantConfig() {
           />
         </div>
 
+        {/* Teléfono y Dirección */}
         <div className="space-y-2">
-          <label className="block text-sm font-bold text-gray-700">URL del Banner</label>
+          <label className="block text-sm font-bold text-gray-700">Teléfono</label>
           <input 
-            type="text" value={restaurant.banner_url}
-            onChange={(e) => setRestaurant({...restaurant, banner_url: e.target.value})}
+            type="text" value={restaurant.telefono}
+            onChange={(e) => setRestaurant({...restaurant, telefono: e.target.value})}
             className="w-full p-3 border rounded-lg"
-            placeholder="https://link-al-banner.png"
+            placeholder="Ej: +57 300 123 4567"
           />
         </div>
 
-        {/* Personalización y Estado */}
-        <div className="flex items-center gap-6 p-4 bg-orange-50 rounded-lg">
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-1">Color del Tema</label>
-            <input 
-              type="color" value={restaurant.color_tema}
-              onChange={(e) => setRestaurant({...restaurant, color_tema: e.target.value})}
-              className="h-10 w-20 cursor-pointer rounded"
-            />
-          </div>
-          <div className="flex items-center gap-2 mt-4">
-            <input 
-              type="checkbox" checked={restaurant.activo}
-              onChange={(e) => setRestaurant({...restaurant, activo: e.target.checked})}
-              className="w-5 h-5 accent-orange-500"
-            />
-            <span className="font-bold text-gray-700">Restaurante Activo</span>
-          </div>
+        <div className="space-y-2">
+          <label className="block text-sm font-bold text-gray-700">Dirección</label>
+          <input 
+            type="text" value={restaurant.direccion}
+            onChange={(e) => setRestaurant({...restaurant, direccion: e.target.value})}
+            className="w-full p-3 border rounded-lg"
+            placeholder="Ej: Calle 123 #45-67"
+          />
+        </div>
+
+        {/* Horarios */}
+        <div className="md:col-span-2 space-y-2">
+          <label className="block text-sm font-bold text-gray-700">Horarios</label>
+          <input 
+            type="text" value={restaurant.horarios}
+            onChange={(e) => setRestaurant({...restaurant, horarios: e.target.value})}
+            className="w-full p-3 border rounded-lg"
+            placeholder="Ej: Lun-Vie 11:00-22:00, Sab-Dom 12:00-23:00"
+          />
         </div>
 
         <div className="md:col-span-2 pt-4">
           <button type="submit" className="w-full bg-orange-600 text-white font-black py-4 rounded-xl hover:bg-orange-700 shadow-lg transform hover:-translate-y-1 transition-all">
-            GUARDAR CONFIGURACIÓN COMPLETA
+            {isNew ? 'CREAR RESTAURANTE' : 'GUARDAR CONFIGURACIÓN'}
           </button>
         </div>
       </form>

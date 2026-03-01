@@ -32,17 +32,17 @@ async def client(db_session: AsyncSession):
 async def test_upload_invalid_type(client):
     """Prueba que el sistema rechaza archivos que no son imágenes."""
     files = {"file": ("test.txt", b"plain text", "text/plain")}
-    response = await client.post("/api/v1/upload/dish", files=files)
+    response = await client.post("/api/v1/admin/upload/dish", files=files)
     assert response.status_code == 400
     assert "Formato no permitido" in response.json()["detail"]
 
 
 @pytest.mark.asyncio
 async def test_upload_file_too_large(client):
-    """Prueba que el sistema rechaza archivos que excedan el límite (2MB)."""
-    # 3MB de contenido basura
-    large_content = b"0" * (3 * 1024 * 1024)
+    """Prueba que el sistema rechaza archivos que excedan el límite (5MB)."""
+    # 6MB de contenido basura
+    large_content = b"0" * (6 * 1024 * 1024)
     files = {"file": ("large.jpg", large_content, "image/jpeg")}
-    response = await client.post("/api/v1/upload/dish", files=files)
+    response = await client.post("/api/v1/admin/upload/dish", files=files)
     assert response.status_code == 400
     assert "demasiado grande" in response.json()["detail"].lower()

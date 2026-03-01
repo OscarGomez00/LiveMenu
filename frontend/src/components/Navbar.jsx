@@ -29,6 +29,24 @@ export default function Navbar() {
             >
               Dashboard
             </Link>
+            <Link
+              to="/admin/restaurante"
+              className="text-gray-300 hover:text-white text-sm no-underline transition-colors"
+            >
+              Restaurante
+            </Link>
+            <Link
+              to="/admin/categorias"
+              className="text-gray-300 hover:text-white text-sm no-underline transition-colors"
+            >
+              Categorías
+            </Link>
+            <Link
+              to="/admin/dishes"
+              className="text-gray-300 hover:text-white text-sm no-underline transition-colors"
+            >
+              Platos
+            </Link>
             <span className="text-gray-400 text-xs">{user.email}</span>
             <button
               onClick={handleLogout}

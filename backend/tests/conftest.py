@@ -36,12 +36,18 @@ import app.models.dish  # noqa: F401
 # SQLite UUID compatibility: render PostgreSQL UUID as VARCHAR(36)
 # ---------------------------------------------------------------------------
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
+from sqlalchemy.dialects.postgresql import JSONB as PG_JSONB
 from sqlalchemy.ext.compiler import compiles
 
 
 @compiles(PG_UUID, "sqlite")
 def _compile_uuid_sqlite(type_, compiler, **kw):
     return "VARCHAR(36)"
+
+
+@compiles(PG_JSONB, "sqlite")
+def _compile_jsonb_sqlite(type_, compiler, **kw):
+    return "TEXT"
 
 
 # ---------------------------------------------------------------------------
@@ -154,3 +160,22 @@ async def test_restaurant(db_session: AsyncSession, test_user):
     await db_session.commit()
     await db_session.refresh(restaurant)
     return restaurant
+
+
+@pytest_asyncio.fixture
+async def sample_category(db_session: AsyncSession, test_restaurant):
+    """Crea una categoría de test asociada al restaurante."""
+    from app.models.category import Category
+
+    category = Category(
+        id=uuid.uuid4(),
+        nombre="Categoría Test",
+        descripcion="Categoría para tests",
+        posicion=1,
+        activa=True,
+        restaurant_id=test_restaurant.id,
+    )
+    db_session.add(category)
+    await db_session.commit()
+    await db_session.refresh(category)
+    return category

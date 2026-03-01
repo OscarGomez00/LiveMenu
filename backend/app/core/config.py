@@ -32,10 +32,15 @@ class Settings(BaseSettings):
     
     # Storage & Images
     UPLOAD_DIR: str = "uploads"
-    MAX_IMAGE_SIZE: int = 2 * 1024 * 1024  # 2MB
+    MAX_IMAGE_SIZE: int = 5 * 1024 * 1024  # 5MB
     ALLOWED_IMAGE_TYPES: list[str] = ["image/jpeg", "image/png", "image/webp"]
     IMAGE_QUALITY: int = 80
-    DISH_IMAGE_SIZE: tuple[int, int] = (800, 600)
+    # Variantes de imagen: thumbnail, medium, large
+    IMAGE_SIZES: dict = {
+        "thumbnail": (150, 150),
+        "medium": (400, 400),
+        "large": (800, 800),
+    }
     
     # Worker Pool
     IMAGE_WORKERS: int = 2  # Número de procesos concurrentes

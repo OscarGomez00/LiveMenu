@@ -1,44 +1,88 @@
+"""
+Tests para CU-02: Gestión de Restaurante.
+Usa fixtures de conftest: client, auth_headers, test_user, db_session.
+"""
 import pytest
-import sys
-import os
-from httpx import AsyncClient, ASGITransport
 
-# Configuración para encontrar el módulo app
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from main import app 
 
 @pytest.mark.asyncio
-async def test_restaurant_management_cu02():
-    transport = ASGITransport(app=app)
-    # Ruta según tu Swagger actual
-    target_url = "/api/v1/api/v1/admin/restaurant/"
+async def test_create_restaurant(client, auth_headers):
+    """Crear restaurante exitosamente."""
+    payload = {
+        "nombre": "Pizzería Tradicional",
+        "descripcion": "Auténtica pizza italiana",
+        "telefono": "555123456",
+        "direccion": "Av. Principal 123",
+    }
+    response = await client.post(
+        "/api/v1/admin/restaurant", json=payload, headers=auth_headers
+    )
+    assert response.status_code == 201
+    data = response.json()
+    assert data["nombre"] == "Pizzería Tradicional"
+    assert data["slug"] == "pizzeria-tradicional"
+    assert data["descripcion"] == "Auténtica pizza italiana"
+    assert data["telefono"] == "555123456"
 
-    async with AsyncClient(transport=transport, base_url="http://test") as ac:
-        
-        # --- CASO 1: Creación Exitosa ---
-        # Si tu esquema pide el slug pero quieres que sea autogenerado, 
-        # por ahora lo enviaremos manualmente para que el test pase a verde.
-        payload = {
-            "nombre": "Pizzería Tradicional",
-            "slug": "pizzeria-tradicional", # Enviado manualmente por ahora
-            "descripcion": "Auténtica pizza italiana",
-            "telefono": "555123456",
-            "direccion": "Av. Principal 123"
-        }
-        
-        response = await ac.post(target_url, json=payload)
-        
-        assert response.status_code == 201
-        data = response.json()
-        assert data["nombre"] == "Pizzería Tradicional"
-        assert data["slug"] == "pizzeria-tradicional"
 
-        # --- CASO 2: Validación de Nombre (Máx 100) ---
-        bad_payload = {
-            "nombre": "N" * 101, 
-            "slug": "nombre-largo",
-            "descripcion": "Prueba"
-        }
-        response_error = await ac.post(target_url, json=bad_payload)
-        assert response_error.status_code == 422
+@pytest.mark.asyncio
+async def test_create_restaurant_name_too_long(client, auth_headers):
+    """Validación: nombre máximo 100 caracteres."""
+    payload = {"nombre": "N" * 101}
+    response = await client.post(
+        "/api/v1/admin/restaurant", json=payload, headers=auth_headers
+    )
+    assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_create_restaurant_missing_name(client, auth_headers):
+    """Validación: nombre es obligatorio."""
+    payload = {"descripcion": "Sin nombre"}
+    response = await client.post(
+        "/api/v1/admin/restaurant", json=payload, headers=auth_headers
+    )
+    assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_get_restaurant(client, auth_headers, test_restaurant):
+    """Obtener restaurante del usuario autenticado."""
+    response = await client.get(
+        "/api/v1/admin/restaurant", headers=auth_headers
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["nombre"] == test_restaurant.nombre
+    assert data["slug"] == test_restaurant.slug
+
+
+@pytest.mark.asyncio
+async def test_get_restaurant_not_found(client, auth_headers):
+    """404 cuando el usuario no tiene restaurante."""
+    response = await client.get(
+        "/api/v1/admin/restaurant", headers=auth_headers
+    )
+    assert response.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_update_restaurant(client, auth_headers, test_restaurant):
+    """Actualizar datos del restaurante."""
+    payload = {"nombre": "Nuevo Nombre", "telefono": "999888777"}
+    response = await client.put(
+        "/api/v1/admin/restaurant", json=payload, headers=auth_headers
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["nombre"] == "Nuevo Nombre"
+    assert data["telefono"] == "999888777"
+    assert data["slug"] == "nuevo-nombre"
+
+
+@pytest.mark.asyncio
+async def test_unauthenticated_access(client):
+    """Acceso sin token retorna 401/403."""
+    response = await client.get("/api/v1/admin/restaurant")
+    assert response.status_code in (401, 403)
 
