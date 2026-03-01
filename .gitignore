@@ -43,6 +43,6 @@ htmlcov/
 .coverage
 
 # =========================
-# Documentation (local only)
+# Documentation (PDFs local only)
 # =========================
-docs/
+docs/*.pdf
