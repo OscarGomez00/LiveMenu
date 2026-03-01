@@ -115,6 +115,14 @@ export default function DashboardPage() {
                 <p className="text-gray-400 text-sm mb-4">
                   /{restaurant.slug}
                 </p>
+                <a
+                  href={`/menu/${restaurant.slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block mb-4 bg-emerald-600 text-white px-4 py-2 rounded-lg font-semibold text-sm no-underline hover:bg-emerald-700 transition-colors"
+                >
+                  Ver Menú Público
+                </a>
                 <QrGenerator
                   restaurantId={restaurant.id}
                   restaurantSlug={restaurant.slug}
