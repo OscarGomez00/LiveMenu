@@ -20,8 +20,8 @@ Sistema de menú digital para restaurantes con panel de administración y vista 
 | CU-03 | CRUD Categorías (nombre, descripción, orden, activar/desactivar) |
 | CU-04 | CRUD Platos (nombre, precio, imagen, disponibilidad, soft-delete) |
 | CU-05 | Carga de imágenes (3 variantes WebP: 150px, 400px, 800px) |
-| CU-06 | Menú público por slug (filtrado por disponible/activa) |
-| CU-07 | Generación de código QR |
+| CU-06 | Menú público por slug (filtrado por disponible/activa, caché en memoria) |
+| CU-07 | Generación de código QR (PNG/SVG, 4 tamaños, colores custom) |
 
 ## Despliegue con Docker
 
@@ -115,7 +115,7 @@ pytest -v     # Usa SQLite in-memory, no necesita PostgreSQL
 - `GET/POST /api/v1/admin/dishes` — Listar/Crear plato
 - `PUT/DELETE /api/v1/admin/dishes/{id}` — Editar/Eliminar plato
 - `POST /api/v1/admin/upload/dish` — Subir imagen de plato
-- `POST /api/v1/admin/qr/generate` — Generar código QR
+- `GET /api/v1/admin/qr` — Generar código QR (params: size, format, fg_color, bg_color)
 
 ### Público
 - `GET /api/v1/menu/{slug}` — Ver menú del restaurante
