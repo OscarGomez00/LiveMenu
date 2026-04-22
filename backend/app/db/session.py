@@ -5,11 +5,12 @@ from app.core.config import settings
 # Crear el motor asíncrono
 engine = create_async_engine(
     settings.DATABASE_URL,
-    echo=True,
+    echo=(settings.APP_ENV.lower() == "dev"),
     future=True,
     pool_pre_ping=True,
     pool_size=10,
     max_overflow=20,
+    connect_args=settings.DATABASE_CONNECT_ARGS,
 )
 
 # Crear el sessionmaker asíncrono

@@ -1,0 +1,12 @@
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+tfplan
+terraform.tfvars
+build/
+lambda/db_rotation/pg8000*
+lambda/db_rotation/scramp*
+lambda/db_rotation/asn1crypto*
+lambda/db_rotation/bin/
+lambda/db_rotation/*.dist-info/

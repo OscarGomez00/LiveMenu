@@ -1,26 +1,18 @@
 import asyncio
-import os
 import uuid
-from pathlib import Path
 from concurrent.futures import ProcessPoolExecutor
-from PIL import Image
-from fastapi import UploadFile, HTTPException
+from fastapi import HTTPException
 from app.core.config import settings
+from app.services.storage import get_storage
 
 
-# Función pura para procesamiento CPU-bound (debe estar fuera de la clase para ser pickleable)
-def process_image_sync(input_bytes: bytes, output_dir: str, base_name: str, sizes: dict, quality: int):
-    """
-    Procesamiento síncrono de imagen (CPU-bound).
-    Genera 3 variantes: thumbnail, medium, large en formato WebP.
-    Retorna dict con las rutas relativas de cada variante.
-    """
+# CPU-bound: debe estar fuera de la clase para ser pickleable por ProcessPoolExecutor.
+# Devuelve {variant: (key, bytes)}; la subida la hace el loop asíncrono.
+def process_image_sync(input_bytes: bytes, base_name: str, sizes: dict, quality: int):
     from io import BytesIO
     from PIL import Image
 
     img = Image.open(BytesIO(input_bytes))
-
-    # Convertir a RGB si es necesario
     if img.mode in ("RGBA", "P"):
         img = img.convert("RGB")
 
@@ -28,10 +20,10 @@ def process_image_sync(input_bytes: bytes, output_dir: str, base_name: str, size
     for variant_name, size in sizes.items():
         variant_img = img.copy()
         variant_img.thumbnail(size, Image.Resampling.LANCZOS)
-        file_name = f"{base_name}_{variant_name}.webp"
-        file_path = os.path.join(output_dir, file_name)
-        variant_img.save(file_path, "WEBP", quality=quality)
-        results[variant_name] = f"/uploads/dishes/{file_name}"
+        buf = BytesIO()
+        variant_img.save(buf, "WEBP", quality=quality)
+        key = f"dishes/{base_name}_{variant_name}.webp"
+        results[variant_name] = (key, buf.getvalue())
 
     return results
 
@@ -114,21 +106,26 @@ class ImageWorkerPool:
             try:
                 # Obtener tarea de la cola
                 task = await self.queue.get()
-                input_bytes, output_dir, base_name, future = task
-                
-                # Ejecutar procesamiento CPU-bound en el executor de procesos
+                input_bytes, base_name, future = task
+
                 loop = asyncio.get_running_loop()
                 try:
-                    result = await loop.run_in_executor(
+                    variants = await loop.run_in_executor(
                         self.executor,
                         process_image_sync,
                         input_bytes,
-                        output_dir,
                         base_name,
                         settings.IMAGE_SIZES,
-                        settings.IMAGE_QUALITY
+                        settings.IMAGE_QUALITY,
                     )
-                    future.set_result(result)
+
+                    storage = get_storage()
+                    urls = {}
+                    for variant_name, (key, data) in variants.items():
+                        urls[variant_name] = await loop.run_in_executor(
+                            None, storage.put_bytes, key, data, "image/webp"
+                        )
+                    future.set_result(urls)
                 except Exception as e:
                     future.set_exception(e)
                 finally:
@@ -148,18 +145,15 @@ class ImageWorkerPool:
             raise HTTPException(status_code=503, detail="Servicio de procesamiento no disponible")
             
         base_name = str(uuid.uuid4())
-        # Asegurar directorio
-        output_dir = Path(settings.UPLOAD_DIR) / "dishes"
-        output_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Future para capturar el resultado del worker
         future = asyncio.get_running_loop().create_future()
-        
+
         # Encolar tareas con timeout si la cola está llena
         try:
             await asyncio.wait_for(
-                self.queue.put((file_content, str(output_dir), base_name, future)),
-                timeout=5.0
+                self.queue.put((file_content, base_name, future)),
+                timeout=5.0,
             )
         except asyncio.TimeoutError:
             raise HTTPException(status_code=503, detail="Cola de procesamiento llena")
