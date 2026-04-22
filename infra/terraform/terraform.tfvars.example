@@ -1,0 +1,34 @@
+project     = "livemenu"
+environment = "prod"
+region      = "us-east-1"
+
+# Red (ajustar si hay colisión con otras VPC)
+vpc_cidr              = "10.40.0.0/16"
+azs                   = ["us-east-1a", "us-east-1b"]
+public_subnet_cidrs   = ["10.40.0.0/24",  "10.40.1.0/24"]
+private_subnet_cidrs  = ["10.40.10.0/24", "10.40.11.0/24"]
+database_subnet_cidrs = ["10.40.20.0/24", "10.40.21.0/24"]
+
+# Dominio (dejar route53_zone_id vacío para un despliegue sin DNS propio).
+domain_name     = "livemenu.app"
+app_subdomain   = "app"
+cdn_subdomain   = "cdn"
+route53_zone_id = ""   # ej: "Z0123456789ABCDEFG"
+
+# Base de datos
+db_name                  = "livemenu_db"
+db_username              = "livemenu"
+db_instance_class        = "db.t4g.medium"
+db_allocated_storage     = 50
+db_backup_retention_days = 15
+
+# Imágenes de contenedor (publicar a ECR antes del apply)
+backend_image_tag  = "v1.0.0"
+frontend_image_tag = "v1.0.0"
+
+# Escala inicial
+backend_desired_count  = 2
+frontend_desired_count = 2
+
+# Rotación de secretos (<= 40 días por política)
+secret_rotation_days = 30
