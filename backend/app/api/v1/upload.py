@@ -1,10 +1,8 @@
-import os
-from pathlib import Path
-
 from fastapi import APIRouter, UploadFile, File, Depends, HTTPException
 from app.api.dependencies import get_current_user
 from app.models.user import User
 from app.services.image_worker import image_pool
+from app.services.storage import get_storage
 from app.core.config import settings
 
 router = APIRouter(prefix="/admin/upload", tags=["Carga de Archivos"])
@@ -54,14 +52,16 @@ async def delete_upload(
 ):
     """Eliminar una imagen subida y sus variantes."""
     base_name = filename.rsplit("_", 1)[0] if "_" in filename else filename.replace(".webp", "")
-    dishes_dir = Path(settings.UPLOAD_DIR) / "dishes"
+    storage = get_storage()
     deleted = []
 
     for variant in ["thumbnail", "medium", "large"]:
-        file_path = dishes_dir / f"{base_name}_{variant}.webp"
-        if file_path.exists():
-            os.remove(file_path)
-            deleted.append(str(file_path.name))
+        key = f"dishes/{base_name}_{variant}.webp"
+        try:
+            storage.delete(key)
+            deleted.append(key)
+        except Exception:
+            pass
 
     if not deleted:
         raise HTTPException(status_code=404, detail="Imagen no encontrada")

@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.httpsredirect import HTTPSRedirectMiddleware
 from app.core.config import settings
 from app.middlewares.rate_limit import RateLimitMiddleware
 from app.api.v1.router import api_router
@@ -7,16 +8,19 @@ from fastapi.staticfiles import StaticFiles
 from app.services.image_worker import image_pool
 import os
 
-# Crear la aplicación FastAPI
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
     openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
 
-# Servir archivos estáticos para las imágenes cargadas
-os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
-app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
+# Sólo montar /uploads cuando el storage es local (en prod las imágenes las sirve CloudFront).
+if settings.STORAGE_BACKEND.lower() == "local":
+    os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+    app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
+
+if settings.FORCE_HTTPS:
+    app.add_middleware(HTTPSRedirectMiddleware)
 
 @app.on_event("startup")
 async def startup_event():
