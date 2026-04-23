@@ -46,8 +46,9 @@ variable "database_subnet_cidrs" {
 
 # --- Dominio y TLS ---
 variable "domain_name" {
-  description = "Dominio raíz (ej: livemenu.app). Se deben crear registros CNAME manualmente si el DNS no está en Route53."
+  description = "Dominio raíz (ej: livemenu.app). Dejar en '' para usar dominios por defecto de AWS."
   type        = string
+  default     = ""
 }
 
 variable "app_subdomain" {
@@ -138,6 +139,24 @@ variable "frontend_desired_count" {
 }
 
 # --- Rotación de secretos ---
+variable "enable_deletion_protection" {
+  description = "Proteger RDS/ALB contra destroy (true en prod, false para labs)."
+  type        = bool
+  default     = true
+}
+
+variable "enable_performance_insights" {
+  description = "Performance Insights (no soportado en db.t4g.micro)."
+  type        = bool
+  default     = true
+}
+
+variable "skip_final_snapshot" {
+  description = "Si true, destroy no crea snapshot final de RDS."
+  type        = bool
+  default     = false
+}
+
 variable "secret_rotation_days" {
   description = "Periodo de rotación automática (máximo 40 por política)."
   type        = number
@@ -146,4 +165,23 @@ variable "secret_rotation_days" {
     condition     = var.secret_rotation_days > 0 && var.secret_rotation_days <= 40
     error_message = "La rotación debe ser mayor a 0 y menor o igual a 40 días."
   }
+}
+
+# --- WAF ---
+variable "waf_rate_limit_per_5min" {
+  description = "Límite de requests por IP en ventana de 5 minutos antes de bloquear."
+  type        = number
+  default     = 2000
+}
+
+variable "waf_blocked_countries" {
+  description = "ISO country codes a bloquear (ej: ['CN','RU','KP']). Lista vacía desactiva la regla geográfica."
+  type        = list(string)
+  default     = []
+}
+
+variable "waf_log_retention_days" {
+  description = "Días de retención de logs WAF en CloudWatch."
+  type        = number
+  default     = 30
 }
