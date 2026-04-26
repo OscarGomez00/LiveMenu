@@ -3,15 +3,15 @@ name: Container Security Scan
 on:
   pull_request:
     branches:
-        - main
+      - main
 
   push:
     branches:
       - main
 
 jobs:
-  scan-containers:
-    name: Scan backend and frontend Docker images
+  backend-security-analysis:
+    name: Backend Security Analysis
     runs-on: ubuntu-latest
 
     steps:
@@ -44,6 +44,34 @@ jobs:
           vuln-type: os,library
           exit-code: '1'
 
+      - name: Install pip-audit
+        run: |
+          python -m pip install --upgrade pip
+          pip install pip-audit
+
+      - name: Scan backend Python dependencies
+        run: |
+          pip-audit -r ./backend/requirements.txt
+
+      - name: Upload backend security reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-security-reports
+          path: security-reports/trivy-backend-report.json
+
+
+  frontend-security-analysis:
+    name: Frontend Security Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create security reports folder
+        run: mkdir -p security-reports
+
       - name: Build frontend Docker image
         run: |
           docker build --no-cache -t livemenu-lab-frontend:security-scan ./frontend
@@ -67,30 +95,6 @@ jobs:
           vuln-type: os,library
           exit-code: '1'
 
-      - name: Upload Trivy security reports
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: trivy-security-reports
-          path: security-reports/
-
-  scan-dependencies:
-    name: Scan Python and Node.js dependencies
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Install pip-audit
-        run: |
-          python -m pip install --upgrade pip
-          pip install pip-audit
-
-      - name: Scan backend Python dependencies
-        run: |
-          pip-audit -r ./backend/requirements.txt
-
       - name: Install frontend dependencies
         run: |
           cd frontend
@@ -100,3 +104,10 @@ jobs:
         run: |
           cd frontend
           npm audit --audit-level=high
+
+      - name: Upload frontend security reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontend-security-reports
+          path: security-reports/trivy-frontend-report.json
