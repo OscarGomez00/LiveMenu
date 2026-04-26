@@ -1,0 +1,102 @@
+name: Container Security Scan
+
+on:
+  pull_request:
+    branches:
+        - main
+
+  push:
+    branches:
+      - main
+
+jobs:
+  scan-containers:
+    name: Scan backend and frontend Docker images
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create security reports folder
+        run: mkdir -p security-reports
+
+      - name: Build backend Docker image
+        run: |
+          docker build --no-cache -t livemenu-lab-backend:security-scan ./backend
+
+      - name: Generate backend Trivy report
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: livemenu-lab-backend:security-scan
+          format: json
+          output: security-reports/trivy-backend-report.json
+          severity: HIGH,CRITICAL
+          vuln-type: os,library
+          exit-code: '0'
+
+      - name: Enforce backend vulnerability gate
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: livemenu-lab-backend:security-scan
+          format: table
+          severity: HIGH,CRITICAL
+          vuln-type: os,library
+          exit-code: '1'
+
+      - name: Build frontend Docker image
+        run: |
+          docker build --no-cache -t livemenu-lab-frontend:security-scan ./frontend
+
+      - name: Generate frontend Trivy report
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: livemenu-lab-frontend:security-scan
+          format: json
+          output: security-reports/trivy-frontend-report.json
+          severity: HIGH,CRITICAL
+          vuln-type: os,library
+          exit-code: '0'
+
+      - name: Enforce frontend vulnerability gate
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: livemenu-lab-frontend:security-scan
+          format: table
+          severity: HIGH,CRITICAL
+          vuln-type: os,library
+          exit-code: '1'
+
+      - name: Upload Trivy security reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: trivy-security-reports
+          path: security-reports/
+
+  scan-dependencies:
+    name: Scan Python and Node.js dependencies
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install pip-audit
+        run: |
+          python -m pip install --upgrade pip
+          pip install pip-audit
+
+      - name: Scan backend Python dependencies
+        run: |
+          pip-audit -r ./backend/requirements.txt
+
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Scan frontend Node.js dependencies
+        run: |
+          cd frontend
+          npm audit --audit-level=high
