@@ -1,3 +1,7 @@
+# Entrega 2
+
+Enlace video demostración: https://youtu.be/zK_hvzuV104
+
 # LiveMenu
 
 Sistema de menú digital para restaurantes con panel de administración y vista pública accesible por QR.
